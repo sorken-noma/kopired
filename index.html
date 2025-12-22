@@ -461,9 +461,9 @@ let lastTap = 0;
                                                    Math.abs(x - lastX) < 50) {
                                                     e.preventDefault();
                                                         if(x > width/2) {
-                                                        audioE1.currentTime +=5;
+                                                        audioE1.currentTime +=9.6;
                                                     } else {
-                                                        audioE1.currentTime -=5;
+                                                        audioE1.currentTime -=9.6;
                                                     }
                                                 }
                                                 lastTap = currentTime;
@@ -647,4 +647,5 @@ audioE1.addEventListener('ended', () => {
         </script>
 </body>
 </html>
+
 
