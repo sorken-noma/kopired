@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>[NOT ALBUM] Kopi Red</title>
+        <link rel="icon" type="image/png" 
+        href="images/kopi.png">
+
+        <style>
+            body {
+                margin: 0;
+                display: flex;
+                padding: 0;
+                justify-content: center; /*center kiri-kanan*/
+                align-items: center; /*center atas-bawah*/
+                height: 100vh; /*cover satu page*/
+                position: relative;
+                background-position: center;
+                background-size: cover;
+                transition: background-image 0.6s ease;
+               
+            }
+
+            #bgContainer {
+                position: fixed; top:0; left:0; width:100%;
+                height: 100%; overflow: hidden; z-index: -1;
+            }
+            #bgContainer img, #bgContainer video {
+                width: 100%; height: 100%; object-fit: cover;
+                position: absolute; top:0; left:0; 
+            }
+            #bgImage, #bgVideo {
+                display: none;
+                inset: 0;
+                z-index: -1;
+            }
+
+            .album-container {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                animation: floatAlbum 3s ease-in-out infinite alternate;
+            }
+            
+            .album {
+                position: relative;         
+                width: 250px;
+                height: 250px;
+                cursor: pointer;
+                margin-bottom: 20px;
+                border-radius: 5px;
+                z-index: 9999;
+             }
+
+            .back {
+                position: absolute ;          
+                width: 100%;
+                height: 100%;
+                opacity: 0.7; /*default full visible */
+                bottom: 10px;
+                left: 10px;
+                z-index: 1;
+                border-radius: 5px;
+                transition: transform 0.6s ease;
+            }
+            .shade {
+                position: absolute;       
+                width: 90%;
+                height: 90%;
+                bottom: 5px;
+                left: 5px;
+                opacity: 0.3;
+                z-index: 5;
+                pointer-events: none;
+                border-radius: 5px;
+            }
+
+            .front {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: 10;
+                border-radius: 5px;
+                transition: transform 0.6s ease;
+            }
+
+
+            
+
+            .album:hover .front {
+                opacity: 0.7;
+                transition: all 0.8s;
+                transform: scale(0.96);
+            }
+
+            .album:hover .shade {
+                opacity: 0.0;
+                transition: all 0.8s;
+                transform: scale(0.96);
+                right: 1.5px;
+            }
+
+           .album:hover .back {
+                opacity: 1.2;
+                transition: all 0.8s;
+                transform: scale(0.96);
+                right: 1.5px;
+            }
+
+            .album.open .front {
+            transform: translateX(-250px);
+            opacity: 2;
+            bottom: 2.5px;
+
+            }
+            .album.open .shade {
+            transform: translateY(250px);
+            opacity: 0;
+
+            }
+            .album.open .back {
+            transform: translateX(250px);
+            opacity: 2;
+            top: 2.5px;
+
+            }
+
+            .vinyl-wrap {
+                position: absolute;
+                z-index: 50;
+                pointer-events: none;
+                align-items: center;
+                display: flex;
+                margin-right: 150px;
+                margin-bottom: 50px;
+            }
+
+            #vinylBtn {
+                position: relative;
+                width: 160px;
+                height: 160px;
+                cursor: pointer;
+                opacity: 0;
+                pointer-events: none;
+                transform: scale (0.8);
+                transition: opacity 0.5s ease, transform 0.5s ease;
+            }
+            #vinylBtn.spinning {
+               animation: spin 9s linear infinite;
+            }
+
+            #vinylBtn.visible {
+                position: absolute;
+                opacity: 1;
+                pointer-events: auto;
+                transform: scale(1) rotate(0deg);
+            }
+               
+
+            #vinylBtn.hide {
+                position: absolute;
+                opacity: 0;
+                transform: scale(0.7) rotate(0deg);
+            }
+
+            #vinylBtn.spin-forward {
+                animation: spin 0.4s linear infinite;
+                animation-direction: normal;
+            }
+
+            #vinylBtn.spin-backward {
+                animation: spin 0.5s linear infinite;
+                animation-direction: reverse;
+            }
+
+
+             @keyframes spin {
+            0%    { transform: scale(1) rotate(0deg) translateY(0px); }
+            25%   { transform: scale(1) rotate(90deg) translateY(0.4px); }
+            50%   { transform: scale(1) rotate(180deg) translateY(-0.8px); }
+            75%   { transform: scale(1) rotate(270deg) translateY(-0.4px); }
+            100%  { transform: scale(1) rotate(360deg) translateY(0px); }
+            }
+
+            @keyframes floatAlbum {
+            0%    { transform: translateY(0px); }
+            50%   { transform: translateY(-10px); }
+            100%  { transform: translateY(0px); }
+            }
+
+            #flashOverlay {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 999;
+                animation: thunderFlash 0.0125s infinite;
+                opacity: 0;
+                background-color: rgb(22, 2, 2);
+             }
+            
+            @keyframes thunderFlash {
+                0%  { opacity: 0.2; }
+                5%  { opacity: 1; }
+                10%  { opacity: 0; }
+                15%  { opacity: 1; }
+                20%  { opacity: 0.4; }
+                57%  { opacity: 0; }
+            }
+
+            .mobile-controls {
+                display: none;
+                gap: 12px;
+
+            }
+
+            @media (max-width: 768px){
+                .mobile-controls {
+                    display: flex;
+                }
+            }
+
+            
+             .album-text {
+                text-align: center;
+                margin-top: -10px;
+                color: rgb(255, 248, 186);
+                opacity: 0.89;
+                mix-blend-mode: difference;
+            
+             }
+
+             .album-text .title {
+                font-weight:bold;
+                font-size: 18px;
+                font-family: Arial, Helvetica, sans-serif;
+            
+             }
+
+             .album-text .author {
+                font-size: 14px;
+                opacity: 0.87;
+                margin-top: 1px;
+                font-family: Georgia, 'Times New Roman', Times, serif;
+             }
+            
+
+             #miniLink {
+                position: absolute;
+                height: 18px;
+                width: 18px;
+                opacity: 0;
+                pointer-events: none;
+                cursor: pointer;
+                align-items: center;
+                margin-top: 305px;
+                transition: opacity 0.87s ease;
+             }
+
+             #miniLink.show {
+                opacity: 0.87;
+                pointer-events: auto;
+                cursor: pointer;
+                
+             }
+             #tresSage {
+                background-color: rgb(29, 29, 29);
+                padding: 5px 10px;
+                border-radius: 3px;
+                position: absolute;
+                font-size: 14px;
+                color: white;
+                align-items: center;
+                text-align: center;
+                font-family: Arial, Helvetica, sans-serif;
+                pointer-events: none;
+                opacity: 1;
+                animation: thunderFlash 3s infinite;
+                margin-right: 0px;
+                margin-bottom: 555px;
+             }
+
+#outro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: black;
+    display: none;
+    pointer-events: auto;
+    opacity: 0;
+    transition: opacity 0.87s ease;
+}
+#outro-overlay img {
+    width: 100%;
+    height: 100%;
+    image-rendering: auto;
+    object-fit: cover;
+}
+
+#outro-overlay.show {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.87s ease;
+}
+
+
+        </style>
+
+          
+
+    </head>
+    <body>
+
+        
+        <div id="bgContainer">
+           <img id="bgImage">
+           <video id="bgVideo" muted loop>
+        
+           </video>
+           <div id="flashOverlay"></div>
+        </div>
+
+        
+
+        <div class="album-container">
+            <div id="albumCover" class="album">
+            <img src="images/kopired_back.jpg" class="back">
+
+            <img src="images/album_shade.jpg" class="shade">
+
+            <img src="images/kopired_front.jpg" class="front" title="Be prepared.">
+
+            
+        
+        </div>
+
+        
+
+            <div class="album-text">
+            <div class="title">[NOT ALBUM] Kopi Red</div>
+            <div class="author">Noma</div>
+
+            
+
+             </div>
+             <img id="miniLink" src="images/link.png" alt="link" title="comment me :v" />
+                
+             
+             <span id="tresSage"></span>
+               
+            
+       
+
+           
+
+        </div>
+ 
+            <div class="vinyl-wrap">
+                <img id="vinylBtn" title="LISTEN NOW" src="images/listen_now.png ">
+
+
+            <audio id="album" src="track/kopired_full.m4a" preload="auto"></audio>
+
+            <div class="mobile-controls">
+                <button id="back">⫷</button>
+                <button id="play">⌧</button>
+                <button id="next">⫸</button>
+            </div>
+
+            </div>
+
+<div id="outro-overlay">
+    <img src="images/outro.jpg" alt="outro">
+</div>
+
+
+        
+
+              <script>
+            const bgImage = document.getElementById('bgImage');
+            const bgVideo = document.getElementById('bgVideo');
+
+            const albumCover = document.getElementById('albumCover')
+            const vinyl = document.getElementById('vinylBtn')
+            const audioE1 = document.getElementById('album')
+            
+
+const miniLink = document.getElementById('miniLink');
+let vinylSpunOnce = false;
+
+            bgImage.src = 'menu/menu.jpg'
+            bgImage.style.display = 'block';
+            bgVideo.style.display = 'none';
+
+            
+            let albumOpen = false;
+
+            albumCover.addEventListener('click', () => {
+              if(albumOpen){
+
+                vinyl.classList.remove('visible');
+                vinyl.classList.add('hide');
+                vinyl.classList.remove('spinning');
+                audioE1.pause();
+
+              } else {
+
+                vinyl.classList.remove('hide');
+                vinyl.classList.add('visible');
+              }
+               albumOpen = !albumOpen;
+               albumCover.classList.toggle('open');
+              
+              });
+
+              vinyl.addEventListener('click', (e) => {
+                e.stopPropagation();
+              vinyl.classList.toggle('spinning');
+
+
+              if(vinyl.classList.contains('spinning')) {
+                audioE1.play() 
+
+    vinylSpunOnce = true ;
+    miniLink.classList.remove("show");
+
+              } else {
+                audioE1.pause()
+
+    if(vinylSpunOnce)
+    miniLink.classList.add("show");
+              }
+                
+                    
+        });
+
+
+
+audioE1.addEventListener("pause", () => {
+    if(vinylSpunOnce)
+    miniLink.classList.add("show");
+});
+audioE1.addEventListener("play", () => {
+    if(vinylSpunOnce)
+    miniLink.classList.remove("show");
+});
+miniLink.addEventListener("click", () => {
+    window.open("https://www.ngl.link/nomaaa444", "_blank");
+});
+
+let lastTap = 0;
+                  let lastX = 0;
+                  document.addEventListener("touchstart",
+                                            function(e) {
+                                                const currentTime = new Date().getTime();
+                                                const tapLength = currentTime - lastTap;
+                                                
+                                                    const x = e.changedTouches[0].clientX;
+                                                    const width = window.innerWidth;
+                                                if(tapLength < 400 && tapLength > 0 &&
+                                                   Math.abs(x - lastX) < 50) {
+                                                        if(x > width/2) {
+                                                        audioE1.currentTime +=5;
+                                                    } else {
+                                                        audioE1.currentTime -=5;
+                                                    }
+                                                }
+                                                lastTap = currentTime;
+                                                lastX = x;
+                                            }, { passive: false });
+
+
+             const bgTimeline = [
+    { start: 0, end: 16.7, bgType: 'video', bgSrc: 'bg/mentega.mp4', msg: "[01/12] Mentega" },
+    { start: 16.8, end: 126.6, bgType: 'video', bgSrc: 'bg/kasut.mp4', msg: "[02/12] Kasut"},
+    { start: 126.7, end: 231.9, bgType: 'video', bgSrc: 'bg/keriau.mp4', msg: "[03/12] Keriau"},
+    { start: 232.0, end: 317.6, bgType: 'video', bgSrc: 'bg/topeng.mp4', msg: "[04/12] Topeng"},
+    { start: 317.7, end: 386.8, bgType: 'video', bgSrc: 'bg/sabotaj.mp4', msg: "[05/12] Sabotaj"},
+    { start: 386.9, end: 417.1, bgType: 'video', bgSrc: 'bg/bising.mp4', msg: "[06/12] Bising"},
+    { start: 417.2, end: 501.5, bgType: 'video', bgSrc: 'bg/silam.mp4', msg: "[07/12] Silam"},
+    { start: 501.6, end: 597.9, bgType: 'video', bgSrc: 'bg/enmesmen.mp4', msg: "[08/12] Enmesmen"},
+    { start: 598.0, end: 652.1, bgType: 'video', bgSrc: 'bg/vinil.mp4', msg: "[09/12] Vinil"},
+    { start: 652.2, end: 740.2, bgType: 'video', bgSrc: 'bg/dopamin.mp4', msg: "[10/12] Dopamin"},
+    { start: 740.3, end: 819.6, bgType: 'video', bgSrc: 'bg/frekuensi.mp4', msg: "[11/12] Frekuensi"},
+    { start: 819.7, end: 888, bgType: 'video', bgSrc: 'bg/dail.mp4', msg: "[12/12] Dail"}
+             ];
+             
+             let activeBg = null;
+
+
+             function showImage(src) {
+                 if(activeBg === src) return;
+                 activeBg = src,
+
+                 bgVideo.pause();
+                 bgVideo.removeAttribute('src');
+                 bgVideo.load();
+                 bgVideo.style.display='none';
+
+                 bgImage.src = src;
+                 bgImage.style.display='block';
+                 bgImage.onload = () => {
+
+                    bgImage.style.opacity = '1';
+                 };
+             }
+
+             function showVideo(src){
+                if (activeBg === src ) return;
+                activeBg = src;
+
+                 bgImage.style.display = 'none';
+
+                 bgVideo.src = src;
+                 bgVideo.style.display='block';
+                 bgVideo.play();
+             }
+
+            audioE1.addEventListener('timeupdate', () => {
+                const t = audioE1.currentTime;
+
+                for(const bg of bgTimeline) {
+                    if(t >= bg.start && t < bg.end){
+                        if(bg.type === 'image'){
+                                
+                                showImage(bg.bgSrc);
+                                
+                        } else {
+                                
+                            showVideo(bg.bgSrc);
+                                     
+                        }
+                         break;    
+                        }
+                        }
+                for(const song of bgTimeline) {
+                    if (t >= song.start && t < song.end) {
+                        tresSage.textContent = song.msg;
+                        break;
+                    }
+                }
+                    });
+            const back = document.getElementById('back')
+             const play = document.getElementById('play')
+              const next = document.getElementById('next')
+              const SEEK = 5
+              const SEEK_SPIN_TIME = 200
+
+              function seek(sec) {
+                album.currentTime = Math.max(
+                    0,
+                    Math.min(album.duration || 0,
+                        album.currentTime + sec)
+                    )
+              }
+
+            function togglePlay() {
+                if (album.paused) {
+                    album.play()
+                    vinyl.classList.add('spinning')
+                    bgVideo.play()
+                        play.textContent = "⛖"
+                } else {
+                    album.pause()
+                    vinyl.classList.remove('spinning')
+                    bgVideo.pause()
+                    play.textContent = "⌧"
+
+                }
+            }
+
+            function spinTemp(direction) {
+                vinyl.classList.remove(
+                    "spinning",
+                    "spin-forward",
+                    "spin-backward"
+                )
+
+                if (direction === "forward") {
+                    vinyl.classList.add("spin-forward")
+
+                } 
+                
+                if (direction === "backward") {
+                    vinyl.classList.add("spin-backward")
+                }
+
+                setTimeout(() => {
+                    vinyl.classList.remove("spin-forward",
+                        "spin-backward")
+                        if (!album.paused)
+                        vinyl.classList.add("spinning")
+                   }, SEEK_SPIN_TIME)
+                }
+
+            back.onclick = function () { 
+                seek(-SEEK) 
+                spinTemp ("backward") 
+
+            }
+
+              next.onclick = function () { 
+                seek(SEEK) 
+                spinTemp ("forward") 
+
+              }
+
+              play.onclick = togglePlay
+            
+
+            document.addEventListener("keydown", function (e) {
+                if(e.code === "Space") { e.preventDefault() 
+                    togglePlay()
+            }
+                if (e.key === "ArrowLeft") { 
+                    seek(-SEEK) 
+                    spinTemp ("backward")
+            }
+                if (e.key === "ArrowRight") { 
+                    seek(SEEK) 
+                    spinTemp ("forward")
+
+                }
+            })
+              function showTempMessage(msg, duration = 3000)
+             {
+                const tresSage = document.getElementById("tresSage");
+              tresSage.textContent = msg;
+              tresSage.classList.add("show");
+
+              setTimeout(() => {
+                tresSage.classList.remove("show");
+              }, duration);
+            }
+
+audioE1.addEventListener('ended', () => {
+    const o = document.getElementById('outro-overlay');
+    o.style.display = ("block");
+    setTimeout(() => {
+    o.classList.add("show");
+}, 500);
+});
+
+            
+
+        </script>
+</body>
+</html>
